@@ -3,7 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 
 
 class UserProfileManager(BaseUserManager):
-    """Manager for user profiles"""
+    """class is a custom manager for user profiles in a Django application. 
+    It overrides the create_user and create_superuser methods provided by Django """
 
     def create_user(self, email, name, password=None):
         """Create a new user Profile"""
