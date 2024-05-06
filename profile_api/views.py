@@ -1,9 +1,12 @@
 from django.shortcuts import render
+from rest_framework import filters  # type: ignore
 from rest_framework import status, viewsets  # type: ignore
+from rest_framework.authentication import TokenAuthentication  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
 
-from profile_api.serializers import HelloSerializer
+from profile_api import models, permissions
+from profile_api.serializers import HelloSerializer, UserProfileSerializer
 
 
 class HelloApiView(APIView):
@@ -55,7 +58,7 @@ class HelloViewSet(viewsets.ViewSet):
     """Test API ViewSet"""
 
     serializer_class = HelloSerializer
-    
+
     def list(self, request):
         """Return a hello message."""
 
@@ -100,3 +103,13 @@ class HelloViewSet(viewsets.ViewSet):
         """Handle removing an object"""
 
         return Response({'http_method': 'DELETE'})
+    
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """Handle creating, creating and updating profiles"""
+    serializer_class = UserProfileSerializer
+    queryset = models.Userprofile.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnProfile,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name', 'email',)
