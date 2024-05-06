@@ -6,14 +6,14 @@ from rest_framework.authtoken.views import ObtainAuthToken  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.settings import api_settings  # type: ignore
 from rest_framework.views import APIView  # type: ignore
+from rest_framework.permissions import IsAuthenticated  # type: ignore
 
-from profile_api import models, permissions
-from profile_api.serializers import HelloSerializer, UserProfileSerializer
+from profile_api import models, permissions, serializers
 
 
 class HelloApiView(APIView):
     """ Test API View"""
-    serializer_class = HelloSerializer
+    serializer_class = serializers.HelloSerializer
 
     def get(self, request, format=None):
         """Returns a list of APIView festures"""
@@ -59,7 +59,7 @@ class HelloApiView(APIView):
 class HelloViewSet(viewsets.ViewSet):
     """Test API ViewSet"""
 
-    serializer_class = HelloSerializer
+    serializer_class = serializers.HelloSerializer
 
     def list(self, request):
         """Return a hello message."""
@@ -105,11 +105,11 @@ class HelloViewSet(viewsets.ViewSet):
         """Handle removing an object"""
 
         return Response({'http_method': 'DELETE'})
-    
+
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     """Handle creating, creating and updating profiles"""
-    serializer_class = UserProfileSerializer
+    serializer_class = serializers.UserProfileSerializer
     queryset = models.Userprofile.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (permissions.UpdateOwnProfile,)
@@ -118,5 +118,17 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
 class UserLoginApiView(ObtainAuthToken):
-   """Handle creating user authentication tokens"""
-   renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    """Handle creating user authentication tokens"""
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+
+class UserProfileFeedViewSet(viewsets.ModelViewSet):
+    """Handles creating, reading and updating profile feed items"""
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = serializers.ProfileFeedItemSerializer
+    permission_classes = (permissions.UpdateOwnStatus, IsAuthenticated)
+    queryset = models.ProfileFeedItem.objects.all()
+
+    def perform_create(self, serializer):
+        """Sets the user profile to the logged in user"""
+        serializer.save(user_profile=self.request.user)
